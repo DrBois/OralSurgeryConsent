@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Video Confirmation</title>
+  <style>
+    /* Basic CSS styling */
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h1, h2 {
+      text-align: center;
+    }
+    .hidden {
+      display: none;
+    }
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 10px;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 8px;
+      margin: 6px 0 12px;
+      box-sizing: border-box;
+    }
+    button {
+      display: inline-block;
+      padding: 10px 20px;
+      margin: 10px 5px;
+      background-color: #007BFF;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    p {
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="formContainer">
+      <h1>Welcome</h1>
+      <p>Please enter your information to start the video.</p>
+      <form id="userForm">
+        <label for="firstName">First Name:</label>
+        <input type="text" id="firstName" required />
+        
+        <label for="lastName">Last Name:</label>
+        <input type="text" id="lastName" required />
+        
+        <label for="cellPhone">Cell Phone:</label>
+        <input type="tel" id="cellPhone" required />
+        
+        <label for="email">Email:</label>
+        <input type="email" id="email" required />
+        
+        <button type="submit">Start Video</button>
+      </form>
+    </div>
+
+    <div id="videoContainer" class="hidden">
+      <h2>Watch the Video</h2>
+      <div style="text-align: center;">
+        <iframe id="youtubePlayer" width="560" height="315" 
+          src="https://www.youtube.com/embed/EMhSH4JNFnQ?si=twgRSxrUaZ99pD_u&enablejsapi=1" 
+          title="YouTube video player" frameborder="0" 
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+          referrerpolicy="strict-origin-when-cross-origin" allowfullscreen>
+        </iframe>
+      </div>
+    </div>
+
+    <div id="confirmationContainer" class="hidden">
+      <h2>Confirmation</h2>
+      <p>Have you watched the entire video?</p>
+      <button id="watchedYes">Yes, I have watched</button>
+      <button id="watchedNo">No, I haven't</button>
+    </div>
+
+    <div id="questionContainer" class="hidden">
+      <h2>Questions</h2>
+      <p>Do you have any questions?</p>
+      <button id="questionsYes">Yes</button>
+      <button id="questionsNo">No</button>
+      <div id="questionInputContainer" class="hidden">
+        <label for="questionText">Please enter your question:</label>
+        <textarea id="questionText" rows="4"></textarea>
+        <button id="submitQuestion">Submit Question</button>
+      </div>
+    </div>
+
+    <div id="finalMessage" class="hidden">
+      <h2>Thank You!</h2>
+      <p>Your response has been recorded.</p>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      var youtubePlayer = document.getElementById('youtubePlayer');
+      youtubePlayer.src = youtubePlayer.src + "&origin=" + window.location.origin;
+    });
+
+    var tag = document.createElement('script');
+    tag.src = "https://www.youtube.com/iframe_api";
+    var firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+    var ytPlayer;
+    function onYouTubeIframeAPIReady() {
+      ytPlayer = new YT.Player('youtubePlayer', {
+        events: {
+          'onStateChange': onPlayerStateChange
+        }
+      });
+    }
+
+    function onPlayerStateChange(event) {
+      if (event.data === YT.PlayerState.ENDED) {
+        document.getElementById('confirmationContainer').classList.remove('hidden');
+      }
+    }
+
+    var collectedData = {
+      firstName: "",
+      lastName: "",
+      cellPhone: "",
+      email: "",
+      question: ""
+    };
+
+    document.addEventListener('DOMContentLoaded', function() {
+      document.getElementById('userForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        collectedData.firstName = document.getElementById('firstName').value;
+        collectedData.lastName = document.getElementById('lastName').value;
+        collectedData.cellPhone = document.getElementById('cellPhone').value;
+        collectedData.email = document.getElementById('email').value;
+        console.log("Collected User Data:", collectedData);
+
+        document.getElementById('formContainer').classList.add('hidden');
+        document.getElementById('videoContainer').classList.remove('hidden');
+      });
+
+      document.getElementById('watchedYes').addEventListener('click', function() {
+        document.getElementById('videoContainer').classList.add('hidden');
+        document.getElementById('confirmationContainer').classList.add('hidden');
+        document.getElementById('questionContainer').classList.remove('hidden');
+      });
+
+      document.getElementById('watchedNo').addEventListener('click', function() {
+        alert("Please watch the entire video before confirming.");
+      });
+
+      document.getElementById('questionsYes').addEventListener('click', function() {
+        document.getElementById('questionInputContainer').classList.remove('hidden');
+      });
+
+      document.getElementById('questionsNo').addEventListener('click', function() {
+        submitData();
+        document.getElementById('questionContainer').classList.add('hidden');
+        document.getElementById('finalMessage').classList.remove('hidden');
+      });
+
+      document.getElementById('submitQuestion').addEventListener('click', function() {
+        collectedData.question = document.getElementById('questionText').value;
+        console.log("Collected Data with Question:", collectedData);
+        submitData();
+        document.getElementById('questionContainer').classList.add('hidden');
+        document.getElementById('finalMessage').classList.remove('hidden');
+      });
+    });
+
+    function submitData() {
+      console.log("Submitting Data:", collectedData);
+
+      const formData = new URLSearchParams();
+      formData.append("firstName", collectedData.firstName);
+      formData.append("lastName", collectedData.lastName);
+      formData.append("cellPhone", collectedData.cellPhone);
+      formData.append("email", collectedData.email);
+      formData.append("question", collectedData.question);
+
+      fetch('https://formspree.io/f/mkgodgbg', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: formData.toString()
+      })
+      .then(response => {
+        console.log("Response status:", response.status);
+        return response.text();
+      })
+      .then(text => {
+        if (text) {
+          try {
+            const data = JSON.parse(text);
+            console.log("Response data:", data);
+            if (data.ok || data.success) {
+              console.log("Submission successful!");
+            } else {
+              console.error("Submission error:", data);
+            }
+          } catch(e) {
+            console.log("Received non-JSON response. Submission might be successful.");
+          }
+        } else {
+          console.log("Empty response received. Submission might be successful.");
+        }
+      })
+      .catch(error => console.error("Error:", error));
+    }
+  </script>
+</body>
+</html>
